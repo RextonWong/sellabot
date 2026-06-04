@@ -17,6 +17,8 @@ function redisOpts(redis: Redis) {
     password: opts.password,
     db: opts.db ?? 0,
     maxRetriesPerRequest: null as null,
+    // Required for Upstash and any rediss:// TLS connection
+    tls: opts.tls ? {} : undefined,
   };
 }
 
