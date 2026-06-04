@@ -220,9 +220,11 @@ export function createServer(deps: {
     res.redirect(url);
   });
 
-  app.get('/auth/shopee/callback', async (req, res) => {
+  // Shared Shopee OAuth callback handler — works at both /auth/shopee/callback
+  // and / (for when redirect URL is registered as domain-only in Shopee portal)
+  async function handleShopeeCallback(req: Parameters<Parameters<typeof app.get>[1]>[0], res: Parameters<Parameters<typeof app.get>[1]>[1]) {
     if (!deps.shopeeAuth) {
-      res.status(503).json({ error: 'Shopee credentials not configured on this server.' });
+      res.status(503).json({ error: 'Shopee credentials not configured.' });
       return;
     }
 
@@ -245,13 +247,22 @@ export function createServer(deps: {
       });
 
       await deps.credStore.saveTokens(shop.id, tokens);
-
       deps.logger.info({ shopId: shop.id }, 'shopee shop authorized');
-      // Redirect back to dashboard after successful auth
-      res.redirect('http://localhost:5173/shops');
+      res.send('<h2>Shop connected! You can close this tab.</h2>');
     } catch (err) {
       deps.logger.error({ err }, 'shopee oauth callback failed');
       res.status(500).json({ error: 'OAuth callback failed' });
+    }
+  }
+
+  app.get('/auth/shopee/callback', handleShopeeCallback);
+
+  // Also handle callback at root when Shopee portal only accepts a bare domain
+  app.get('/', async (req, res, next) => {
+    if (req.query.code && req.query.shop_id) {
+      await handleShopeeCallback(req, res);
+    } else {
+      next();
     }
   });
 
