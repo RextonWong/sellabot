@@ -20,8 +20,12 @@
     "db:push": "prisma db push",
     "shopee:auth": "tsx scripts/shopee-auth.ts"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
+    "dotenv": "^16.4.0",
     "@prisma/client": "^6.0.0",
     "axios": "^1.7.0",
     "bullmq": "^5.0.0",
