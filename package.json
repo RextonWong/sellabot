@@ -1,0 +1,42 @@
+{
+  "name": "sellabot",
+  "version": "0.1.0",
+  "description": "Multi-agent system to automate Shopee seller operations",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "dev:ui": "cd src/frontend && npm run dev",
+    "build": "tsc",
+    "build:ui": "cd src/frontend && npm run build",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio",
+    "db:push": "prisma db push",
+    "shopee:auth": "tsx scripts/shopee-auth.ts"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.0",
+    "@prisma/client": "^6.0.0",
+    "axios": "^1.7.0",
+    "bullmq": "^5.0.0",
+    "express": "^4.21.0",
+    "ioredis": "^5.4.0",
+    "pino": "^9.0.0",
+    "pino-pretty": "^11.0.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "prisma": "^6.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}

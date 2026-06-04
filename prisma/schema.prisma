@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ── Shops ─────────────────────────────────────────────────────────────────────
+
+model Shop {
+  id         String   @id @default(cuid())
+  platform   String   // "shopee" | "lazada" | "tiktokshop"
+  externalId String   // platform's shop_id
+  name       String
+  region     String   // "SG" | "MY" | "TH" etc.
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  credentials ShopCredential?
+  tasks       Task[]
+  auditLogs   AuditLog[]
+
+  @@unique([platform, externalId])
+  @@index([platform, active])
+}
+
+// ── Credentials (tokens stored encrypted) ────────────────────────────────────
+
+model ShopCredential {
+  id                   String    @id @default(cuid())
+  shopId               String    @unique
+  shop                 Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  // AES-256-GCM encrypted JSON: { accessToken, refreshToken }
+  encryptedTokens      String
+  accessTokenExpiresAt DateTime
+  updatedAt            DateTime  @updatedAt
+
+  @@index([accessTokenExpiresAt])
+}
+
+// ── Tasks ─────────────────────────────────────────────────────────────────────
+
+enum TaskStatus {
+  PENDING
+  QUEUED
+  IN_PROGRESS
+  NEEDS_APPROVAL
+  APPROVED
+  REJECTED
+  COMPLETED
+  FAILED
+}
+
+model Task {
+  id            String     @id @default(cuid())
+  shopId        String
+  shop          Shop       @relation(fields: [shopId], references: [id])
+  kind          String     // e.g. "product.update", "pricing.update"
+  payload       Json       // typed per kind — see core/task.ts
+  status        TaskStatus @default(PENDING)
+  attempts      Int        @default(0)
+  idempotencyKey String?   @unique
+  parentTaskId  String?    // for subtasks decomposed by orchestrator
+  parentTask    Task?      @relation("SubTasks", fields: [parentTaskId], references: [id])
+  subTasks      Task[]     @relation("SubTasks")
+  result        Json?
+  errorMessage  String?
+  queuedAt      DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  auditLogs AuditLog[]
+
+  @@index([shopId, status])
+  @@index([kind, status])
+  @@index([parentTaskId])
+}
+
+// ── Audit Log (append-only) ───────────────────────────────────────────────────
+
+enum AuditAction {
+  TASK_CREATED
+  TASK_QUEUED
+  TASK_STARTED
+  TASK_COMPLETED
+  TASK_FAILED
+  TASK_NEEDS_APPROVAL
+  TASK_APPROVED
+  TASK_REJECTED
+  API_CALL_INTENT    // logged BEFORE mutation
+  API_CALL_SUCCESS   // logged AFTER success
+  API_CALL_ERROR     // logged AFTER failure
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  shopId    String
+  shop      Shop        @relation(fields: [shopId], references: [id])
+  taskId    String?
+  task      Task?       @relation(fields: [taskId], references: [id])
+  action    AuditAction
+  agent     String      // "orchestrator" | "product" | "pricing" etc.
+  payload   Json        // what was attempted/performed
+  outcome   Json?       // result or error detail
+  createdAt DateTime    @default(now())
+
+  @@index([shopId, createdAt])
+  @@index([taskId])
+}
+
+// ── Price Snapshots (for competitor monitoring) ───────────────────────────────
+
+model PriceSnapshot {
+  id         String   @id @default(cuid())
+  shopId     String
+  platform   String
+  itemId     String
+  modelId    String?
+  price      Decimal
+  stock      Int?
+  recordedAt DateTime @default(now())
+
+  @@index([shopId, itemId, recordedAt])
+}
