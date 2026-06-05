@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/api/:path*",   "destination": "https://sellabot.onrender.com/api/:path*" },
+    { "source": "/tasks",        "destination": "https://sellabot.onrender.com/tasks" },
+    { "source": "/tasks/:path*", "destination": "https://sellabot.onrender.com/tasks/:path*" },
+    { "source": "/auth/:path*",  "destination": "https://sellabot.onrender.com/auth/:path*" }
+  ]
+}
