@@ -18,7 +18,8 @@
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
     "db:push": "prisma db push",
-    "shopee:auth": "tsx scripts/shopee-auth.ts"
+    "shopee:auth": "tsx scripts/shopee-auth.ts",
+    "shopee:verify": "tsx scripts/shopee-verify.ts"
   },
   "engines": {
     "node": ">=20"

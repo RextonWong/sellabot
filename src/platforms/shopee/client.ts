@@ -69,7 +69,9 @@ export class ShopeeClient {
         return this.handleShopeeError(body.error, body.message ?? '');
       }
 
-      return body.response as T;
+      // Some endpoints (e.g. shop/get_shop_info) return their payload at the
+      // top level instead of nested under `response`.
+      return (body.response ?? body) as T;
     } catch (err) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
