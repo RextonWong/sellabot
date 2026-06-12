@@ -58,13 +58,7 @@ async function main() {
 
   // ── Agent workers ─────────────────────────────────────────────────────────
 
-  // Placeholder adapter used when no platform is registered yet
-  const noopAdapter = new Proxy({}, {
-    get: () => () => Promise.reject(new Error('No platform adapter configured')),
-  }) as never;
-
   const makeCtx = (agentName: string, shopId?: string) => ({
-    adapter: noopAdapter,
     llm,
     logger: logger.child({ agent: agentName }),
     makeAudit: (taskId: string) => async (action: string, payload: unknown, outcome?: unknown) => {
@@ -90,7 +84,7 @@ async function main() {
   ];
 
   const workers = agents.map(({ agent, name }) =>
-    makeWorker(name, agent, makeCtx(name) as never, redis),
+    makeWorker(name, agent, makeCtx(name), redis),
   );
 
   logger.info({ count: workers.length }, 'agent workers started');

@@ -29,15 +29,17 @@ export class ShopeeAdapter implements PlatformAdapter {
       '/api/v2/product/get_item_list',
       'GET',
       creds,
+      { offset, page_size: limit, item_status: 'NORMAL' },
     );
 
     if (!listRes.item?.length) return [];
 
-    const itemIds = listRes.item.slice(offset, offset + limit).map((i) => i.item_id);
+    const itemIds = listRes.item.map((i) => i.item_id);
     const detailRes = await this.client.call<{ item_list: ShopeeItem[] }>(
       '/api/v2/product/get_item_base_info',
       'GET',
       creds,
+      { item_id_list: itemIds.join(',') },
     );
 
     return (detailRes.item_list ?? []).map(mapShopeeItem);
@@ -48,7 +50,8 @@ export class ShopeeAdapter implements PlatformAdapter {
     const res = await this.client.call<{ item_list: ShopeeItem[] }>(
       '/api/v2/product/get_item_base_info',
       'GET',
-      { ...creds },
+      creds,
+      { item_id_list: itemId },
     );
     const item = res.item_list?.[0];
     if (!item) throw new Error(`Item ${itemId} not found`);

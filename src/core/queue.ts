@@ -3,6 +3,7 @@ import type { Redis } from 'ioredis';
 import type { Task, AgentName, TaskResult } from './task';
 import type { Agent, AgentContext } from './agent';
 import { RetryableError, NeedsApprovalError } from './errors';
+import { getAdapter } from '../platforms/registry';
 import type { Logger } from 'pino';
 
 export type TaskJob = Task;
@@ -46,7 +47,8 @@ export async function enqueue(
 export function makeWorker(
   agentName: AgentName,
   agent: Agent,
-  ctx: Omit<AgentContext, 'logger' | 'audit'> & {
+  ctx: {
+    llm: AgentContext['llm'];
     logger: Logger;
     makeAudit: (taskId: string) => AgentContext['audit'];
   },
@@ -59,7 +61,7 @@ export function makeWorker(
       const task = job.data;
       const logger = ctx.logger.child({ taskId: task.id, kind: task.kind });
       const agentCtx: AgentContext = {
-        adapter: ctx.adapter,
+        adapter: getAdapter(task.platform),
         llm: ctx.llm,
         logger,
         audit: ctx.makeAudit(task.id),

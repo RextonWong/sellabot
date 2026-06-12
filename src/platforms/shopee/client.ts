@@ -60,7 +60,7 @@ export class ShopeeClient {
     try {
       const response =
         method === 'GET'
-          ? await this.http.get(path, { params: commonParams })
+          ? await this.http.get(path, { params: { ...commonParams, ...(data as Record<string, unknown> | undefined) } })
           : await this.http.post(path, data, { params: commonParams });
 
       const body = response.data as ShopeeResponse<T>;
