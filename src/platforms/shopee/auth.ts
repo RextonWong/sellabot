@@ -1,4 +1,3 @@
-import { sign } from './signer';
 import type { Config } from '../../config';
 import type { ShopeeClient } from './client';
 
@@ -17,28 +16,19 @@ export class ShopeeAuth {
 
   /** Build the OAuth authorization URL to redirect the seller to. */
   buildAuthUrl(): string {
-    const timestamp = Math.floor(Date.now() / 1000);
-    const path = '/api/v2/shop/auth_partner';
-    const signature = sign({
-      partnerId: this.config.partnerId,
-      partnerKey: this.config.partnerKey,
-      path,
-      timestamp,
-    });
-
     const baseHost =
       this.config.env === 'live'
-        ? 'https://partner.shopeemobile.com'
-        : 'https://partner.test-stable.shopeemobile.com';
+        ? 'https://open.shopee.com'
+        : 'https://open.sandbox.test-stable.shopee.com';
 
     const params = new URLSearchParams({
       partner_id: String(this.config.partnerId),
-      timestamp: String(timestamp),
-      sign: signature,
-      redirect: this.config.redirectUrl,
+      auth_type: 'seller',
+      redirect_uri: this.config.redirectUrl,
+      response_type: 'code',
     });
 
-    return `${baseHost}${path}?${params.toString()}`;
+    return `${baseHost}/auth?${params.toString()}`;
   }
 
   /** Exchange an authorization code for tokens. */

@@ -1,0 +1,24 @@
+# Dependencies & build
+node_modules/
+dist/
+build/
+
+# DB & generated
+prisma/migrations/
+src/db/client.ts
+
+# Locks & env
+.env
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs & test artifacts
+*.log
+coverage/
+test/integration/
+
+# Any external reference repos
+../knotscope/
+../tilescope/

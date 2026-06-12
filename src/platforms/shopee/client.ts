@@ -5,9 +5,12 @@ import type { RateLimiter } from '../../core/ratelimit';
 import { SHOPEE_LIMITS } from '../../core/ratelimit';
 import type { Config } from '../../config';
 
+// Note: open.sandbox.test-stable.shopee.com only serves the browser auth
+// pages — API calls 404 there. The sandbox API host is the .sg one below
+// (per the official docs' GetAccessToken examples).
 const HOSTS = {
   live: 'https://partner.shopeemobile.com',
-  test: 'https://partner.test-stable.shopeemobile.com',
+  test: 'https://openplatform.sandbox.test-stable.shopee.sg',
 } as const;
 
 export interface ShopeeCredentials {
@@ -111,7 +114,9 @@ export class ShopeeClient {
     if (body.error) {
       return this.handleShopeeError(body.error, body.message ?? '');
     }
-    return body.response as T;
+    // Auth endpoints (token/get, access_token/get) return their payload at the
+    // top level instead of nested under `response`.
+    return (body.response ?? body) as T;
   }
 
   private handleShopeeError(error: string, message: string): never {

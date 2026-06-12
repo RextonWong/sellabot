@@ -24,6 +24,8 @@ export function sign(params: ShopeeSignParams): string {
     parts.push(accessToken, shopId);
   }
 
+  // The partner key is used verbatim as a UTF-8 string (shpk prefix included),
+  // matching Shopee's official code examples.
   const baseString = parts.join('');
   return createHmac('sha256', partnerKey).update(baseString).digest('hex');
 }
